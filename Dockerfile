@@ -1,17 +1,22 @@
-FROM python:3.11-slim
+ARG GO_VERSION=1.26
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+ARG TARGETOS
+ARG TARGETARCH
 
-WORKDIR /app
+WORKDIR /src
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY go.mod ./
+COPY cmd ./cmd
+COPY internal ./internal
 
-COPY --chown=10001:0 app ./app
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} \
+    go build -trimpath -ldflags="-s -w" -o /out/sample-scorer ./cmd/sample-scorer
 
-USER 10001
+FROM gcr.io/distroless/static-debian12:nonroot
+
+COPY --from=build /out/sample-scorer /sample-scorer
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/sample-scorer"]

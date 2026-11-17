@@ -1,8 +1,5 @@
 .git
-.pytest_cache
-__pycache__
-*.py[cod]
-.venv
 bin
-tests
 examples
+charts
+**/*_test.go

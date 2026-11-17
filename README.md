@@ -1,6 +1,6 @@
 # Dynamic Scoring Framework Sample Scorer
 
-A buildable Prometheus-backed scoring API for the Dynamic Scoring Framework (DSF).
+A Go Prometheus-backed scoring API for the Dynamic Scoring Framework (DSF).
 It is based on the DSF `sample-scorer` and computes the average value for each
 time series it receives.
 
@@ -39,9 +39,10 @@ sample values:
 ## Run locally
 
 ```sh
-make install
 make run
 ```
+
+The Makefile uses the Go version declared in `go.mod`
 
 Then check the configuration and health endpoint:
 
@@ -64,6 +65,12 @@ Run the tests with:
 make test
 ```
 
+Build a local binary with:
+
+```sh
+make build
+```
+
 ## Build and publish the image
 
 The Makefile follows the framework's container-target conventions. Override
@@ -80,9 +87,9 @@ The default image is
 ## Configuration
 
 `/config` provides the Prometheus query, range, step, scoring path, score name,
-and interval. Set `PROMETHEUS_HOST` when building a deployment-specific image
-if the config endpoint should provide the source host. If it is unset, the
-source host is omitted so it can be supplied by the `DynamicScorer` CR.
+and interval. Set `PROMETHEUS_HOST` in the scorer's runtime environment if the
+config endpoint should provide the source host. If it is unset, the source host
+is omitted so it can be supplied by the `DynamicScorer` CR.
 
 The service is intentionally a small starting point. Additional Prometheus-backed
 examples can be added as separate config/scoring endpoint pairs; static scoring

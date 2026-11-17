@@ -4,11 +4,11 @@ IMAGE_TAG ?= latest
 IMG ?= $(IMAGE_REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 CONTAINER_TOOL ?= docker
-PYTHON ?= python3
-PIP ?= $(PYTHON) -m pip
+GO ?= go
+GO_VERSION ?= $(shell sed -n 's/^go //p' go.mod | cut -d. -f1,2)
 HELM ?= helm
 CHART_PATH ?= charts/sample-scorer
-PORT ?= 8000
+BIN_DIR ?= bin
 
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
@@ -20,23 +20,35 @@ help: ## Display this help.
 
 ##@ Development
 
-.PHONY: install
-install: ## Install the scorer and development dependencies.
-	$(PIP) install -r requirements-dev.txt
+.PHONY: fmt
+fmt: ## Format Go source files.
+	$(GO) fmt ./...
 
-.PHONY: run
-run: ## Run the scorer locally with auto-reload.
-	$(PYTHON) -m uvicorn app.main:app --reload --host 0.0.0.0 --port $(PORT)
+.PHONY: vet
+vet: ## Run go vet.
+	$(GO) vet ./...
 
 .PHONY: test
 test: ## Run the scorer tests.
-	$(PYTHON) -m pytest -q
+	$(GO) test ./...
+
+.PHONY: verify
+verify: fmt vet test ## Format, vet, and test the scorer.
 
 ##@ Build
 
+.PHONY: build
+build: ## Build the scorer binary.
+	mkdir -p "$(BIN_DIR)"
+	$(GO) build -trimpath -o "$(BIN_DIR)/sample-scorer" ./cmd/sample-scorer
+
+.PHONY: run
+run: ## Run the scorer locally.
+	$(GO) run ./cmd/sample-scorer
+
 .PHONY: docker-build
 docker-build: ## Build the scorer container image.
-	$(CONTAINER_TOOL) build $(IMAGE_BUILD_EXTRA_FLAGS) -t "$(IMG)" -f Dockerfile .
+	$(CONTAINER_TOOL) build $(IMAGE_BUILD_EXTRA_FLAGS) --build-arg GO_VERSION="$(GO_VERSION)" -t "$(IMG)" -f Dockerfile .
 
 .PHONY: docker-push
 docker-push: ## Push the scorer container image.
