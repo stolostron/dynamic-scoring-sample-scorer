@@ -1,0 +1,11 @@
+apiVersion: dynamic-scoring.open-cluster-management.io/v1alpha1
+kind: DynamicScoringConfig
+metadata:
+  name: dynamic-scoring-config
+  namespace: {{ required "global.namespace must be supplied by MCH" .Values.global.namespace }}
+spec:
+  masks:
+    # Current DSF behavior is all managed clusters except explicit masks.
+    # This excludes the hub; it does not make scorer distribution match the Placement.
+    - clusterName: local-cluster
+      scoreName: sample_my_score

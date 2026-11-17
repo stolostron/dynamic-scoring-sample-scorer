@@ -1,0 +1,9 @@
+global:
+  namespace: open-cluster-management
+
+hubconfig:
+  clusterIngressDomain: apps.example.com
+
+sampleScorer:
+  namespace: dynamic-scoring-sample
+  scheme: http

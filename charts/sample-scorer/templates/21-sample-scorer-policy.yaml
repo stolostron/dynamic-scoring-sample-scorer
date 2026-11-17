@@ -1,0 +1,48 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: sample-scorer-prometheus-access
+  namespace: {{ .Values.sampleScorer.namespace }}
+spec:
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: sample-scorer-prometheus-access
+        spec:
+          remediationAction: enforce
+          severity: low
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: ServiceAccount
+                metadata:
+                  name: dynamic-scoring-prometheus-reader
+                  namespace: dynamic-scoring
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: ClusterRoleBinding
+                metadata:
+                  name: dynamic-scoring-prometheus-reader
+                roleRef:
+                  apiGroup: rbac.authorization.k8s.io
+                  kind: ClusterRole
+                  name: cluster-monitoring-view
+                subjects:
+                  - kind: ServiceAccount
+                    name: dynamic-scoring-prometheus-reader
+                    namespace: dynamic-scoring
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Secret
+                metadata:
+                  name: dynamic-scoring-agent-token
+                  namespace: dynamic-scoring
+                  annotations:
+                    kubernetes.io/service-account.name: dynamic-scoring-prometheus-reader
+                type: kubernetes.io/service-account-token
