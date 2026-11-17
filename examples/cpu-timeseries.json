@@ -1,0 +1,28 @@
+{
+  "data": [
+    {
+      "metric": {
+        "node": "worker-1",
+        "namespace": "default",
+        "pod": "example-app-0"
+      },
+      "values": [
+        [1718600000, "5"],
+        [1718600060, "10"],
+        [1718600120, "15"]
+      ]
+    },
+    {
+      "metric": {
+        "node": "worker-2",
+        "namespace": "default",
+        "pod": "example-app-1"
+      },
+      "values": [
+        [1718600000, "2"],
+        [1718600060, "4"],
+        [1718600120, "6"]
+      ]
+    }
+  ]
+}

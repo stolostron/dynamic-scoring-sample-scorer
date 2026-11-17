@@ -6,25 +6,15 @@ metadata:
 spec:
   description: A sample scorer for Prometheus CPU metrics
   configURL: "{{ .Values.sampleScorer.scheme }}://sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}/config"
-  configSyncMode: None
+  configSyncMode: Full
   location: Internal
   scoreDestination: AddOnPlacementScore
   scoreDimensionFormat: "${scoreName}"
   source:
-    type: Prometheus
+    # The host is deployment-specific and is used as a fallback because the
+    # sample scorer omits it from /config unless PROMETHEUS_HOST is configured.
     host: https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091
-    path: /api/v1/query_range
-    params:
-      query: 'avg by (node) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100'
-      range: 3600
-      step: 60
     auth:
       tokenSecretRef:
         name: dynamic-scoring-agent-token
         key: token
-  scoring:
-    host: "{{ .Values.sampleScorer.scheme }}://sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}"
-    path: /scoring
-    params:
-      name: sample_my_score
-      interval: 30

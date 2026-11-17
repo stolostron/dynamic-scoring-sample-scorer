@@ -5,7 +5,7 @@ Draft, local-only Helm chart for discussing the optional MCH sample-scorer bundl
 ## Hub-side resources
 
 - `templates/00-hub-sample-scorer.yaml`: namespace, simple scorer Deployment, Service, and OpenShift Route.
-- `templates/10-dynamicscorer.yaml`: scorer registration, including the OpenShift Prometheus endpoint and token Secret reference.
+- `templates/10-dynamicscorer.yaml`: scorer registration. The scorer's `/config` supplies the query and scoring settings; the CR supplies the spoke Prometheus host fallback and token Secret reference.
 - `templates/11-dynamicscoringconfig.yaml`: the current DSF singleton configuration.
 - `templates/20-sample-scorer-placement.yaml`, `21-sample-scorer-policy.yaml`, `22-sample-scorer-placementbinding.yaml`, and `23-sample-scorer-managedclustersetbinding.yaml`: select labeled spokes and grant the sample Policy access to the global ManagedClusterSet.
 
