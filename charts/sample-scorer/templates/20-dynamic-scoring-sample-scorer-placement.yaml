@@ -1,8 +1,8 @@
 apiVersion: cluster.open-cluster-management.io/v1beta1
 kind: Placement
 metadata:
-  name: sample-scorer-spokes
-  namespace: {{ .Values.sampleScorer.namespace }}
+  name: dynamic-scoring-sample-scorer-spokes
+  namespace: {{ .Values.dynamicScoringSampleScorer.namespace }}
 spec:
   clusterSets:
     - global

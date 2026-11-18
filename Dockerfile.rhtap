@@ -7,24 +7,24 @@ COPY cmd ./cmd
 COPY internal ./internal
 COPY LICENSE LICENSE
 
-RUN CGO_ENABLED=1 GOEXPERIMENT=strictfipsruntime go build -mod=readonly -trimpath -ldflags="-s -w" -o sample-scorer ./cmd/sample-scorer
+RUN CGO_ENABLED=1 GOEXPERIMENT=strictfipsruntime go build -mod=readonly -trimpath -ldflags="-s -w" -o dynamic-scoring-sample-scorer ./cmd/dynamic-scoring-sample-scorer
 
 FROM registry.redhat.io/ubi9/ubi-minimal-pqc:latest
 
-LABEL url="https://github.com/stolostron/dynamic-scoring-framework-sample-scorer" \
-      com.redhat.component="dynamic-scoring-framework-sample-scorer" \
+LABEL url="https://github.com/stolostron/dynamic-scoring-sample-scorer" \
+      com.redhat.component="dynamic-scoring-sample-scorer" \
       summary="Dynamic Scoring Framework sample scorer for Red Hat Advanced Cluster Management" \
       description="Dynamic Scoring Framework sample scorer for Red Hat Advanced Cluster Management" \
-      io.k8s.display-name="Dynamic Scoring Framework Sample Scorer" \
-      io.k8s.description="Dynamic Scoring Framework Sample Scorer for Red Hat Advanced Cluster Management" \
-      io.openshift.tags="acm dynamic-scoring-framework-sample-scorer"
+      io.k8s.display-name="Dynamic Scoring Sample Scorer" \
+      io.k8s.description="Dynamic Scoring Sample Scorer for Red Hat Advanced Cluster Management" \
+      io.openshift.tags="acm dynamic-scoring-sample-scorer"
 
 WORKDIR /
-COPY --from=builder /workspace/sample-scorer /sample-scorer
+COPY --from=builder /workspace/dynamic-scoring-sample-scorer /dynamic-scoring-sample-scorer
 COPY --from=builder /workspace/LICENSE /licenses/
 
 EXPOSE 8000
 
 USER 65532:65532
 
-ENTRYPOINT ["/sample-scorer"]
+ENTRYPOINT ["/dynamic-scoring-sample-scorer"]

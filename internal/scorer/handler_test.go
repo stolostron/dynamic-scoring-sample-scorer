@@ -36,7 +36,7 @@ func testConfigs() EndpointConfigs {
 	}
 	return EndpointConfigs{
 		Average: Config{
-			Name:   "sample-scorer",
+			Name:   "dynamic-scoring-sample-scorer",
 			Source: source,
 			Scoring: ScoringConfig{
 				Path: "/scoring",
@@ -47,7 +47,7 @@ func testConfigs() EndpointConfigs {
 			},
 		},
 		MinimumHeadroom: Config{
-			Name:   "sample-scorer-minimum-headroom",
+			Name:   "dynamic-scoring-sample-scorer-minimum-headroom",
 			Source: source,
 			Scoring: ScoringConfig{
 				Path: "/minimum-headroom/scoring",

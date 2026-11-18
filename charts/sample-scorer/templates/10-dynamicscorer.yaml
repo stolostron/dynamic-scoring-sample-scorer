@@ -1,19 +1,19 @@
 apiVersion: dynamic-scoring.open-cluster-management.io/v1alpha1
 kind: DynamicScorer
 metadata:
-  name: sample-scorer
+  name: dynamic-scoring-sample-scorer
   namespace: {{ required "global.namespace must be supplied by MCH" .Values.global.namespace }}
 spec:
-  description: A sample scorer for average cluster CPU headroom
-  configURL: "{{ .Values.sampleScorer.scheme }}://sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}/config"
+  description: A Dynamic Scoring sample scorer for average cluster CPU headroom
+  configURL: "{{ .Values.dynamicScoringSampleScorer.scheme }}://dynamic-scoring-sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}/config"
   configSyncMode: Full
   location: Internal
   scoreDestination: AddOnPlacementScore
   scoreDimensionFormat: "${scoreName}"
   source:
     # The host is deployment-specific and is used as a fallback because the
-    # sample scorer omits it from /config unless PROMETHEUS_HOST is configured.
-    host: {{ required "sampleScorer.prometheusHost must be supplied" .Values.sampleScorer.prometheusHost | quote }}
+    # scorer omits it from /config unless PROMETHEUS_HOST is configured.
+    host: {{ required "dynamicScoringSampleScorer.prometheusHost must be supplied" .Values.dynamicScoringSampleScorer.prometheusHost | quote }}
     auth:
       tokenSecretRef:
         name: dynamic-scoring-agent-token

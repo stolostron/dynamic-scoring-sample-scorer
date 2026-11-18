@@ -98,7 +98,7 @@ func ConfigsFromEnv() (EndpointConfigs, error) {
 	}
 	return EndpointConfigs{
 		Average: Config{
-			Name:        "sample-scorer",
+			Name:        "dynamic-scoring-sample-scorer",
 			Description: "Average CPU headroom across the cluster",
 			Source:      source,
 			Scoring: ScoringConfig{
@@ -110,7 +110,7 @@ func ConfigsFromEnv() (EndpointConfigs, error) {
 			},
 		},
 		MinimumHeadroom: Config{
-			Name:        "sample-scorer-minimum-headroom",
+			Name:        "dynamic-scoring-sample-scorer-minimum-headroom",
 			Description: "Minimum CPU headroom observed across the cluster",
 			Source:      source,
 			Scoring: ScoringConfig{

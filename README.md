@@ -1,7 +1,7 @@
-# Dynamic Scoring Framework Sample Scorer
+# Dynamic Scoring Sample Scorer
 
 A Go Prometheus-backed scoring API for the Dynamic Scoring Framework (DSF),
-based on the DSF `sample-scorer`. It exposes two scoring examples: average CPU
+based on the original DSF sample scorer. It exposes two scoring examples: average CPU
 headroom and minimum CPU headroom over the query range.
 
 ## API
@@ -96,7 +96,7 @@ make image-push IMAGE_REGISTRY=quay.io/my-org IMAGE_TAG=dev
 ```
 
 The default image is
-`quay.io/open-cluster-management/dynamic-scoring-framework-sample-scorer:latest`.
+`quay.io/open-cluster-management/dynamic-scoring-sample-scorer:latest`.
 
 ## Configuration
 

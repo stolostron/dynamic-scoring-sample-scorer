@@ -23,7 +23,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/stolostron/dynamic-scoring-framework-sample-scorer/internal/scorer"
+	"github.com/stolostron/dynamic-scoring-sample-scorer/internal/scorer"
 )
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	log.Printf("starting sample scorer on :%s", port)
+	log.Printf("starting dynamic scoring sample scorer on :%s", port)
 	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf("sample scorer server failed: %v", err)
 	}

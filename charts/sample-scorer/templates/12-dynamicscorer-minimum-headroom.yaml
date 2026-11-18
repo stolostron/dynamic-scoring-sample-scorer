@@ -1,11 +1,11 @@
 apiVersion: dynamic-scoring.open-cluster-management.io/v1alpha1
 kind: DynamicScorer
 metadata:
-  name: sample-scorer-minimum-headroom
+  name: dynamic-scoring-sample-scorer-minimum-headroom
   namespace: {{ required "global.namespace must be supplied by MCH" .Values.global.namespace }}
 spec:
-  description: A sample scorer for minimum cluster CPU headroom
-  configURL: "{{ .Values.sampleScorer.scheme }}://sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}/minimum-headroom/config"
+  description: A Dynamic Scoring sample scorer for minimum cluster CPU headroom
+  configURL: "{{ .Values.dynamicScoringSampleScorer.scheme }}://dynamic-scoring-sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}/minimum-headroom/config"
   configSyncMode: Full
   location: Internal
   scoreDestination: AddOnPlacementScore
@@ -13,7 +13,7 @@ spec:
   source:
     # The API supplies the query and scoring endpoint; the host and auth are
     # deployment-specific and shared by the managed clusters selected by DSF.
-    host: {{ required "sampleScorer.prometheusHost must be supplied" .Values.sampleScorer.prometheusHost | quote }}
+    host: {{ required "dynamicScoringSampleScorer.prometheusHost must be supplied" .Values.dynamicScoringSampleScorer.prometheusHost | quote }}
     auth:
       tokenSecretRef:
         name: dynamic-scoring-agent-token

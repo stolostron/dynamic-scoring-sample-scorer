@@ -6,11 +6,11 @@ hubconfig:
   # MCH supplies this from the hub's config.openshift.io/v1 Ingress named cluster.
   clusterIngressDomain: ""
 
-sampleScorer:
-  namespace: dynamic-scoring-sample
+dynamicScoringSampleScorer:
+  namespace: dynamic-scoring-sample-scorer
   prometheusHost: https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091
   image:
-    repository: quay.io/open-cluster-management/dynamic-scoring-framework-sample-scorer
+    repository: quay.io/open-cluster-management/dynamic-scoring-sample-scorer
     tag: latest
     pullPolicy: Always
   # Use https only when the Route certificate is trusted by DSF's controller and agents.

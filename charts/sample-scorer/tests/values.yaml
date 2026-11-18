@@ -4,6 +4,6 @@ global:
 hubconfig:
   clusterIngressDomain: apps.example.com
 
-sampleScorer:
-  namespace: dynamic-scoring-sample
+dynamicScoringSampleScorer:
+  namespace: dynamic-scoring-sample-scorer
   scheme: http

@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.dynamicScoringSampleScorer.namespace }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dynamic-scoring-sample-scorer
+  namespace: {{ .Values.dynamicScoringSampleScorer.namespace }}
+  labels:
+    app: dynamic-scoring-sample-scorer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dynamic-scoring-sample-scorer
+  template:
+    metadata:
+      labels:
+        app: dynamic-scoring-sample-scorer
+    spec:
+      containers:
+        - name: dynamic-scoring-sample-scorer
+          image: "{{ .Values.dynamicScoringSampleScorer.image.repository }}:{{ .Values.dynamicScoringSampleScorer.image.tag }}"
+          imagePullPolicy: {{ .Values.dynamicScoringSampleScorer.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dynamic-scoring-sample-scorer
+  namespace: {{ .Values.dynamicScoringSampleScorer.namespace }}
+spec:
+  selector:
+    app: dynamic-scoring-sample-scorer
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: dynamic-scoring-sample-scorer
+  namespace: {{ .Values.dynamicScoringSampleScorer.namespace }}
+spec:
+  host: "dynamic-scoring-sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}"
+  to:
+    kind: Service
+    name: dynamic-scoring-sample-scorer
+  port:
+    targetPort: http
+{{ if eq .Values.dynamicScoringSampleScorer.scheme "https" }}
+  tls:
+    termination: edge
+{{ end }}
+  wildcardPolicy: None

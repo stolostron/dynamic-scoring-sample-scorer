@@ -1,6 +1,6 @@
 apiVersion: v2
-name: sample-scorer
-description: Temporary MCH sample scorer bundle for rendering and design review
+name: dynamic-scoring-sample-scorer
+description: Dynamic Scoring sample scorer bundle for MCH
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

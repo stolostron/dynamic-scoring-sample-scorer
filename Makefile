@@ -1,5 +1,5 @@
 IMAGE_REGISTRY ?= quay.io/open-cluster-management
-IMAGE_NAME ?= dynamic-scoring-framework-sample-scorer
+IMAGE_NAME ?= dynamic-scoring-sample-scorer
 IMAGE_TAG ?= latest
 IMG ?= $(IMAGE_REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 
@@ -73,11 +73,11 @@ verify: verify-fmt vet lint test chart-lint ## Verify formatting, vet, lint, tes
 .PHONY: build
 build: ## Build the scorer binary.
 	mkdir -p "$(BIN_DIR)"
-	$(GO) build -trimpath -o "$(BIN_DIR)/sample-scorer" ./cmd/sample-scorer
+	$(GO) build -trimpath -o "$(BIN_DIR)/dynamic-scoring-sample-scorer" ./cmd/dynamic-scoring-sample-scorer
 
 .PHONY: run
 run: ## Run the scorer locally.
-	$(GO) run ./cmd/sample-scorer
+	$(GO) run ./cmd/dynamic-scoring-sample-scorer
 
 .PHONY: docker-build
 docker-build: ## Build the scorer container image.
@@ -101,4 +101,4 @@ chart-lint: helm ## Lint the sample scorer Helm chart with its local fixture val
 
 .PHONY: chart-template
 chart-template: helm ## Render the sample scorer Helm chart with its local fixture values.
-	$(HELM) template sample-scorer "$(CHART_PATH)" -f "$(CHART_PATH)/tests/values.yaml"
+	$(HELM) template dynamic-scoring-sample-scorer "$(CHART_PATH)" -f "$(CHART_PATH)/tests/values.yaml"
