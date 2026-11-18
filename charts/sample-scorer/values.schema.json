@@ -5,6 +5,10 @@
     "sampleScorer": {
       "type": "object",
       "properties": {
+        "prometheusHost": {
+          "type": "string",
+          "minLength": 1
+        },
         "image": {
           "type": "object",
           "properties": {

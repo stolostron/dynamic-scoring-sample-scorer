@@ -9,3 +9,5 @@ spec:
     # This excludes the hub; it does not make scorer distribution match the Placement.
     - clusterName: local-cluster
       scoreName: sample_cpu_average
+    - clusterName: local-cluster
+      scoreName: sample_cpu_minimum_headroom

@@ -8,6 +8,7 @@ hubconfig:
 
 sampleScorer:
   namespace: dynamic-scoring-sample
+  prometheusHost: https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091
   image:
     repository: quay.io/open-cluster-management/dynamic-scoring-framework-sample-scorer
     tag: latest

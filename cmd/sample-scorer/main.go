@@ -7,11 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/tesshuflower/dynamic-scoring-framework-sample-scorer/internal/scorer"
+	"github.com/stolostron/dynamic-scoring-framework-sample-scorer/internal/scorer"
 )
 
 func main() {
-	config, err := scorer.ConfigFromEnv()
+	configs, err := scorer.ConfigsFromEnv()
 	if err != nil {
 		log.Fatalf("invalid scorer configuration: %v", err)
 	}
@@ -23,7 +23,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:              ":" + port,
-		Handler:           scorer.NewHandler(config),
+		Handler:           scorer.NewHandler(configs),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

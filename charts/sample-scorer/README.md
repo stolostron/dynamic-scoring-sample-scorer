@@ -1,11 +1,11 @@
-# Temporary MCH sample-scorer chart
+# Experimental MCH sample-scorer chart
 
-Draft, local-only Helm chart for discussing the optional MCH sample-scorer bundle. It is not integrated into MCH and should not be pushed to the downstream repository yet.
+This experimental chart deploys the sample scorer and its optional MCH resources. It is not integrated into MCH's default add-on installation flow.
 
 ## Hub-side resources
 
 - `templates/00-hub-sample-scorer.yaml`: namespace, simple scorer Deployment, Service, and OpenShift Route.
-- `templates/10-dynamicscorer.yaml`: scorer registration. The scorer's `/config` supplies the query and scoring settings; the CR supplies the spoke Prometheus host fallback and token Secret reference.
+- `templates/10-dynamicscorer.yaml` and `12-dynamicscorer-minimum-headroom.yaml`: registrations for the average and minimum CPU-headroom examples. Each API config supplies its query and scoring settings; the CR supplies the Prometheus host fallback and token Secret reference.
 - `templates/11-dynamicscoringconfig.yaml`: the current DSF singleton configuration.
 - `templates/20-sample-scorer-placement.yaml`, `21-sample-scorer-policy.yaml`, `22-sample-scorer-placementbinding.yaml`, and `23-sample-scorer-managedclustersetbinding.yaml`: select labeled spokes and grant the sample Policy access to the global ManagedClusterSet.
 
@@ -13,7 +13,9 @@ Draft, local-only Helm chart for discussing the optional MCH sample-scorer bundl
 
 The chart defaults to `quay.io/open-cluster-management/dynamic-scoring-framework-sample-scorer:latest`. Override `sampleScorer.image.repository`, `sampleScorer.image.tag`, and `sampleScorer.image.pullPolicy` to deploy an image built or published elsewhere.
 
-`sampleScorer.scheme` selects `http` or `https` for the Route and both scorer URLs. It defaults to `http` for this test setup because the default OpenShift ingress certificate is not trusted by DSF. Use `https` only when the Route presents a certificate trusted by both the hub controller and spoke agents.
+The default Prometheus host is configurable with `sampleScorer.prometheusHost`. The current DSF `DynamicScorer` API sends one host to all managed clusters; supporting different Prometheus URLs per spoke requires a DSF framework enhancement.
+
+`sampleScorer.scheme` selects `http` or `https` for the Route and the config/scoring endpoints for both examples. It defaults to `http` for this test setup because the default OpenShift ingress certificate is not trusted by DSF. Use `https` only when the Route presents a certificate trusted by both the hub controller and spoke agents.
 
 Render the chart locally with:
 
@@ -35,6 +37,7 @@ The selected clusters must have the Governance Policy Framework and `config-poli
 ## Known gaps to resolve
 
 - **Placement is not yet a DSF distribution input.** The Placement above selects spokes for the Policy only. The current `DynamicScoringConfig` still distributes to all managed clusters except those explicitly masked; its `local-cluster` mask does not make its targets match the Placement. DSF Placement support is needed for one shared target selection.
+- The sample chart uses `${scoreName}` as its score dimension. Its default Prometheus query aggregates to one cluster-wide series per scoring call; if you customize the query to return multiple series, update the dimension format or the results will collide in `AddOnPlacementScore`.
 - MCH does not coordinate readiness between the Policy and scorer configuration. If the token Secret arrives after the agent receives its ConfigMap, the agent currently retries on ConfigMap resync (about 10 minutes). A targeted Secret refresh/retry change is planned separately.
 - Deleting a Policy does not necessarily delete objects it enforced. The optional bundle needs an explicit cleanup strategy for the spoke ServiceAccount, ClusterRoleBinding, and token Secret when disabled.
 - `cluster-monitoring-view` is OpenShift-specific. This Policy/Placement should only target OpenShift spokes.

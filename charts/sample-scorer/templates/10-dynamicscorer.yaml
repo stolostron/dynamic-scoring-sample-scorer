@@ -4,7 +4,7 @@ metadata:
   name: sample-scorer
   namespace: {{ required "global.namespace must be supplied by MCH" .Values.global.namespace }}
 spec:
-  description: A sample scorer for Prometheus CPU metrics
+  description: A sample scorer for average cluster CPU headroom
   configURL: "{{ .Values.sampleScorer.scheme }}://sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}/config"
   configSyncMode: Full
   location: Internal
@@ -13,7 +13,7 @@ spec:
   source:
     # The host is deployment-specific and is used as a fallback because the
     # sample scorer omits it from /config unless PROMETHEUS_HOST is configured.
-    host: https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091
+    host: {{ required "sampleScorer.prometheusHost must be supplied" .Values.sampleScorer.prometheusHost | quote }}
     auth:
       tokenSecretRef:
         name: dynamic-scoring-agent-token

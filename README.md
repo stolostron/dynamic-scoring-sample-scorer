@@ -1,15 +1,17 @@
 # Dynamic Scoring Framework Sample Scorer
 
-A Go Prometheus-backed scoring API for the Dynamic Scoring Framework (DSF).
-It is based on the DSF `sample-scorer` and computes the average value for each
-time series it receives.
+A Go Prometheus-backed scoring API for the Dynamic Scoring Framework (DSF),
+based on the DSF `sample-scorer`. It exposes two scoring examples: average CPU
+headroom and minimum CPU headroom over the query range.
 
 ## API
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/config` | Returns the scorer and Prometheus source configuration |
-| `POST` | `/scoring` | Returns one average score per input time series |
+| `GET` | `/config` | Configures the average CPU-headroom example |
+| `POST` | `/scoring` | Returns the average per input time series |
+| `GET` | `/minimum-headroom/config` | Configures the minimum CPU-headroom example |
+| `POST` | `/minimum-headroom/scoring` | Returns the minimum per input time series |
 | `GET` | `/healthz` | Liveness check |
 
 The scoring request uses the Prometheus matrix shape:
@@ -25,8 +27,8 @@ The scoring request uses the Prometheus matrix shape:
 }
 ```
 
-The response preserves the metric labels and returns the average of the numeric
-sample values:
+The response preserves the metric labels. The average example returns the
+average of numeric sample values:
 
 ```json
 {
@@ -36,13 +38,16 @@ sample values:
 }
 ```
 
+The minimum-headroom example uses the same request shape but returns the
+minimum numeric sample value for each series.
+
 ## Run locally
 
 ```sh
 make run
 ```
 
-The Makefile uses the Go version declared in `go.mod`
+The Makefile uses the Go version declared in `go.mod`.
 
 Then check the configuration and health endpoint:
 
@@ -87,10 +92,16 @@ The default image is
 ## Configuration
 
 `/config` provides the Prometheus query, range, step, scoring path, score name,
-and interval. Set `PROMETHEUS_HOST` in the scorer's runtime environment if the
-config endpoint should provide the source host. If it is unset, the source host
-is omitted so it can be supplied by the `DynamicScorer` CR.
+and interval for the average example. `/minimum-headroom/config` provides the
+same source configuration with its own score name and endpoint path. By default,
+the Prometheus query returns one cluster-wide average CPU-idle series, which
+means higher scores represent more CPU headroom and each example produces one
+dimension per cluster.
 
-The service is intentionally a small starting point. Additional Prometheus-backed
-examples can be added as separate config/scoring endpoint pairs; static scoring
-is not included.
+Set `PROMETHEUS_HOST` in the scorer's runtime environment if both config
+endpoints should provide the source host. If it is unset, the host is omitted
+so it can be supplied by the `DynamicScorer` CR. If you customize the query to
+return multiple series, set a `scoreDimensionFormat` that gives each result a
+distinct, cross-cluster-comparable dimension.
+
+Static scoring is not included.

@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-const defaultPrometheusQuery = `sum by (node, namespace, pod) (rate(container_cpu_usage_seconds_total{container!="", pod!=""}[1m]))`
+const defaultPrometheusQuery = `avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100`
 
 // Config describes the source query and scoring endpoint returned by /config.
 type Config struct {
@@ -14,6 +14,12 @@ type Config struct {
 	Description string        `json:"description"`
 	Source      SourceConfig  `json:"source"`
 	Scoring     ScoringConfig `json:"scoring"`
+}
+
+// EndpointConfigs contains the Prometheus-backed examples served by the API.
+type EndpointConfigs struct {
+	Average         Config
+	MinimumHeadroom Config
 }
 
 type SourceConfig struct {
@@ -39,52 +45,64 @@ type ScoringParams struct {
 	Interval int    `json:"interval"`
 }
 
-// ConfigFromEnv builds the scorer configuration, allowing deployment-specific
+// ConfigsFromEnv builds the example configurations, allowing deployment-specific
 // Prometheus details to be supplied without baking them into the image.
-func ConfigFromEnv() (Config, error) {
+func ConfigsFromEnv() (EndpointConfigs, error) {
 	prometheusRange, err := intFromEnv("PROMETHEUS_RANGE", 3600)
 	if err != nil {
-		return Config{}, err
+		return EndpointConfigs{}, err
 	}
 	prometheusStep, err := intFromEnv("PROMETHEUS_STEP", 60)
 	if err != nil {
-		return Config{}, err
+		return EndpointConfigs{}, err
 	}
 	scoringInterval, err := intFromEnv("SCORING_INTERVAL", 30)
 	if err != nil {
-		return Config{}, err
+		return EndpointConfigs{}, err
 	}
 	if prometheusRange <= 0 {
-		return Config{}, fmt.Errorf("PROMETHEUS_RANGE must be greater than zero")
+		return EndpointConfigs{}, fmt.Errorf("PROMETHEUS_RANGE must be greater than zero")
 	}
 	if prometheusStep <= 0 {
-		return Config{}, fmt.Errorf("PROMETHEUS_STEP must be greater than zero")
+		return EndpointConfigs{}, fmt.Errorf("PROMETHEUS_STEP must be greater than zero")
 	}
 	if scoringInterval <= 0 {
-		return Config{}, fmt.Errorf("SCORING_INTERVAL must be greater than zero")
+		return EndpointConfigs{}, fmt.Errorf("SCORING_INTERVAL must be greater than zero")
 	}
 
-	// If unset here, the prometheus host will need to be set in the dynamicscorer CR
-	host := os.Getenv("PROMETHEUS_HOST")
-
-	return Config{
-		Name:        stringFromEnv("SCORER_NAME", "sample-scorer"),
-		Description: stringFromEnv("SCORER_DESCRIPTION", "A sample average score for time series data"),
-		Source: SourceConfig{
-			Type: "Prometheus",
-			Host: host,
-			Path: stringFromEnv("PROMETHEUS_PATH", "/api/v1/query_range"),
-			Params: PrometheusParams{
-				Query: stringFromEnv("PROMETHEUS_QUERY", defaultPrometheusQuery),
-				Range: prometheusRange,
-				Step:  prometheusStep,
+	source := SourceConfig{
+		Type: "Prometheus",
+		Host: os.Getenv("PROMETHEUS_HOST"),
+		Path: stringFromEnv("PROMETHEUS_PATH", "/api/v1/query_range"),
+		Params: PrometheusParams{
+			Query: stringFromEnv("PROMETHEUS_QUERY", defaultPrometheusQuery),
+			Range: prometheusRange,
+			Step:  prometheusStep,
+		},
+	}
+	return EndpointConfigs{
+		Average: Config{
+			Name:        "sample-scorer",
+			Description: "Average CPU headroom across the cluster",
+			Source:      source,
+			Scoring: ScoringConfig{
+				Path: "/scoring",
+				Params: ScoringParams{
+					Name:     "sample_cpu_average",
+					Interval: scoringInterval,
+				},
 			},
 		},
-		Scoring: ScoringConfig{
-			Path: stringFromEnv("SCORING_PATH", "/scoring"),
-			Params: ScoringParams{
-				Name:     stringFromEnv("SCORE_NAME", "sample_cpu_average"),
-				Interval: scoringInterval,
+		MinimumHeadroom: Config{
+			Name:        "sample-scorer-minimum-headroom",
+			Description: "Minimum CPU headroom observed across the cluster",
+			Source:      source,
+			Scoring: ScoringConfig{
+				Path: "/minimum-headroom/scoring",
+				Params: ScoringParams{
+					Name:     "sample_cpu_minimum_headroom",
+					Interval: scoringInterval,
+				},
 			},
 		},
 	}, nil

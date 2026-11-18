@@ -33,15 +33,33 @@ type ScoringResponse struct {
 }
 
 // NewHandler returns an HTTP handler implementing the DSF scorer endpoints.
-func NewHandler(config Config) http.Handler {
+func NewHandler(configs EndpointConfigs) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/config", func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
 			return
 		}
-		writeJSON(w, http.StatusOK, config)
+		writeJSON(w, http.StatusOK, configs.Average)
 	})
-	mux.HandleFunc("/scoring", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/minimum-headroom/config", func(w http.ResponseWriter, r *http.Request) {
+		if !requireMethod(w, r, http.MethodGet) {
+			return
+		}
+		writeJSON(w, http.StatusOK, configs.MinimumHeadroom)
+	})
+	mux.HandleFunc("/scoring", scoringHandler(averageFiniteValues))
+	mux.HandleFunc("/minimum-headroom/scoring", scoringHandler(minimumFiniteValue))
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		if !requireMethod(w, r, http.MethodGet) {
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	})
+	return mux
+}
+
+func scoringHandler(aggregate func([][]json.RawMessage) float64) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodPost) {
 			return
 		}
@@ -56,18 +74,11 @@ func NewHandler(config Config) http.Handler {
 			http.Error(w, "scoring request must contain one JSON value", http.StatusBadRequest)
 			return
 		}
-		writeJSON(w, http.StatusOK, scorePayload(payload))
-	})
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		if !requireMethod(w, r, http.MethodGet) {
-			return
-		}
-		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-	})
-	return mux
+		writeJSON(w, http.StatusOK, scorePayload(payload, aggregate))
+	}
 }
 
-func scorePayload(payload ScoringPayload) ScoringResponse {
+func scorePayload(payload ScoringPayload, aggregate func([][]json.RawMessage) float64) ScoringResponse {
 	results := make([]Score, 0, len(payload.Data))
 	for _, series := range payload.Data {
 		metric := series.Metric
@@ -76,15 +87,44 @@ func scorePayload(payload ScoringPayload) ScoringResponse {
 		}
 		results = append(results, Score{
 			Metric: metric,
-			Score:  averageFiniteValues(series.Values),
+			Score:  aggregate(series.Values),
 		})
 	}
 	return ScoringResponse{Results: results}
 }
 
 func averageFiniteValues(samples [][]json.RawMessage) float64 {
+	values := finiteValues(samples)
+	if len(values) == 0 {
+		return 0
+	}
 	var sum float64
-	count := 0
+	for _, value := range values {
+		sum += value
+	}
+	average := sum / float64(len(values))
+	if math.IsNaN(average) || math.IsInf(average, 0) {
+		return 0
+	}
+	return average
+}
+
+func minimumFiniteValue(samples [][]json.RawMessage) float64 {
+	values := finiteValues(samples)
+	if len(values) == 0 {
+		return 0
+	}
+	minimum := values[0]
+	for _, value := range values[1:] {
+		if value < minimum {
+			minimum = value
+		}
+	}
+	return minimum
+}
+
+func finiteValues(samples [][]json.RawMessage) []float64 {
+	values := make([]float64, 0, len(samples))
 	for _, sample := range samples {
 		if len(sample) < 2 {
 			continue
@@ -93,17 +133,9 @@ func averageFiniteValues(samples [][]json.RawMessage) float64 {
 		if err != nil || math.IsNaN(value) || math.IsInf(value, 0) {
 			continue
 		}
-		sum += value
-		count++
+		values = append(values, value)
 	}
-	if count == 0 {
-		return 0
-	}
-	average := sum / float64(count)
-	if math.IsNaN(average) || math.IsInf(average, 0) {
-		return 0
-	}
-	return average
+	return values
 }
 
 func parseNumericValue(raw json.RawMessage) (float64, error) {
