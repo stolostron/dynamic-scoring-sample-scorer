@@ -73,6 +73,12 @@ make test
 Run lint with `make lint`; it installs the pinned `golangci-lint` version into
 `bin/` if it is not already present.
 
+Run all verification checks, including Helm chart lint, with:
+
+```sh
+make verify
+```
+
 Build a local binary with:
 
 ```sh

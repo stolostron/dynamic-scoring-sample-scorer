@@ -30,6 +30,15 @@ fmt: ## Format Go source files.
 vet: ## Run go vet.
 	$(GO) vet ./...
 
+.PHONY: verify-fmt
+verify-fmt: ## Check Go formatting without modifying files.
+	@out=$$(gofmt -s -l .); \
+	if [ -n "$$out" ]; then \
+		echo "gofmt needs to run on:"; \
+		echo "$$out"; \
+		exit 1; \
+	fi
+
 .PHONY: lint
 lint: golangci-lint ## Run golangci-lint.
 	$(GOLANGCI_LINT_BIN) run ./...
@@ -49,7 +58,7 @@ test: ## Run the scorer tests.
 	$(GO) test ./...
 
 .PHONY: verify
-verify: fmt vet lint test ## Format, vet, lint, and test the scorer.
+verify: verify-fmt vet lint test chart-lint ## Verify formatting, vet, lint, test, and chart.
 
 ##@ Build
 
