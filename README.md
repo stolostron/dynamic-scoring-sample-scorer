@@ -82,7 +82,7 @@ make image-push IMAGE_REGISTRY=quay.io/my-org IMAGE_TAG=dev
 ```
 
 The default image is
-`quay.io/open-cluster-management/dynamic-scoring-sample-scorer:latest`.
+`quay.io/open-cluster-management/dynamic-scoring-framework-sample-scorer:latest`.
 
 ## Configuration
 

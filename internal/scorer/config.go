@@ -64,7 +64,9 @@ func ConfigFromEnv() (Config, error) {
 		return Config{}, fmt.Errorf("SCORING_INTERVAL must be greater than zero")
 	}
 
+	// If unset here, the prometheus host will need to be set in the dynamicscorer CR
 	host := os.Getenv("PROMETHEUS_HOST")
+
 	return Config{
 		Name:        stringFromEnv("SCORER_NAME", "sample-scorer"),
 		Description: stringFromEnv("SCORER_DESCRIPTION", "A sample average score for time series data"),

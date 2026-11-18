@@ -11,7 +11,7 @@ Draft, local-only Helm chart for discussing the optional MCH sample-scorer bundl
 
 `DynamicScorer` and `DynamicScoringConfig` use MCH's `global.namespace`, populated from the BackplaneConfig target namespace. The sample scorer Deployment, Service, Route, Policy, Placement, PlacementBinding, and ClusterSetBinding are grouped in `dynamic-scoring-sample`; the spoke Prometheus-reader ServiceAccount and token remain in the DSF agent's `dynamic-scoring` namespace. The Route, `DynamicScorer.configURL`, and scoring endpoint share one host from MCH's `hubconfig.clusterIngressDomain`. MCH obtains that value from the hub's `Ingress/cluster` resource. `tests/values.yaml` provides local fixture values only.
 
-The chart defaults to `quay.io/open-cluster-management/dynamic-scoring-sample-scorer:latest`. Override `sampleScorer.image.repository`, `sampleScorer.image.tag`, and `sampleScorer.image.pullPolicy` to deploy an image built or published elsewhere.
+The chart defaults to `quay.io/open-cluster-management/dynamic-scoring-framework-sample-scorer:latest`. Override `sampleScorer.image.repository`, `sampleScorer.image.tag`, and `sampleScorer.image.pullPolicy` to deploy an image built or published elsewhere.
 
 `sampleScorer.scheme` selects `http` or `https` for the Route and both scorer URLs. It defaults to `http` for this test setup because the default OpenShift ingress certificate is not trusted by DSF. Use `https` only when the Route presents a certificate trusted by both the hub controller and spoke agents.
 

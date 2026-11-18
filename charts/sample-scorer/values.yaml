@@ -9,7 +9,7 @@ hubconfig:
 sampleScorer:
   namespace: dynamic-scoring-sample
   image:
-    repository: quay.io/open-cluster-management/dynamic-scoring-sample-scorer
+    repository: quay.io/open-cluster-management/dynamic-scoring-framework-sample-scorer
     tag: latest
     pullPolicy: Always
   # Use https only when the Route certificate is trusted by DSF's controller and agents.

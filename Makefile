@@ -1,5 +1,5 @@
 IMAGE_REGISTRY ?= quay.io/open-cluster-management
-IMAGE_NAME ?= dynamic-scoring-sample-scorer
+IMAGE_NAME ?= dynamic-scoring-framework-sample-scorer
 IMAGE_TAG ?= latest
 IMG ?= $(IMAGE_REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 
