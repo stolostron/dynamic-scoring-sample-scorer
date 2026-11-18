@@ -70,6 +70,9 @@ Run the tests with:
 make test
 ```
 
+Run lint with `make lint`; it installs the pinned `golangci-lint` version into
+`bin/` if it is not already present.
+
 Build a local binary with:
 
 ```sh
