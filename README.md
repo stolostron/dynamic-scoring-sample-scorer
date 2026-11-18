@@ -70,8 +70,8 @@ Run the tests with:
 make test
 ```
 
-Run lint with `make lint`; it installs the pinned `golangci-lint` version into
-`bin/` if it is not already present.
+`make lint` installs the pinned `golangci-lint` version into `bin/` if needed.
+Chart targets similarly install the pinned Helm version into `bin/`.
 
 Run all verification checks, including Helm chart lint, with:
 
