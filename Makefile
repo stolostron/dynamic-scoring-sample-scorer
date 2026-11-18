@@ -5,7 +5,6 @@ IMG ?= $(IMAGE_REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 CONTAINER_TOOL ?= docker
 GO ?= go
-GO_VERSION ?= $(shell sed -n 's/^go //p' go.mod | cut -d. -f1,2)
 GOLANGCI_LINT_VERSION ?= v2.12.2
 HELM ?= helm
 CHART_PATH ?= charts/sample-scorer
@@ -73,7 +72,7 @@ run: ## Run the scorer locally.
 
 .PHONY: docker-build
 docker-build: ## Build the scorer container image.
-	$(CONTAINER_TOOL) build $(IMAGE_BUILD_EXTRA_FLAGS) --build-arg GO_VERSION="$(GO_VERSION)" -t "$(IMG)" -f Dockerfile .
+	$(CONTAINER_TOOL) build $(IMAGE_BUILD_EXTRA_FLAGS) -t "$(IMG)" -f Dockerfile.rhtap .
 
 .PHONY: docker-push
 docker-push: ## Push the scorer container image.
