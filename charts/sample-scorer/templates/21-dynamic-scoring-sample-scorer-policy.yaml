@@ -1,7 +1,7 @@
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
-  name: dynamic-scoring-sample-scorer-prometheus-access
+  name: sample-scorer-prometheus-access
   namespace: {{ .Values.dynamicScoringSampleScorer.namespace }}
 spec:
   disabled: false
@@ -10,7 +10,7 @@ spec:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
-          name: dynamic-scoring-sample-scorer-prometheus-access
+          name: dynamic-sample-scorer-access
         spec:
           remediationAction: enforce
           severity: low

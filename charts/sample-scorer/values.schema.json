@@ -29,6 +29,10 @@
         "scheme": {
           "type": "string",
           "enum": ["http", "https"]
+        },
+        "staticScoresPath": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }

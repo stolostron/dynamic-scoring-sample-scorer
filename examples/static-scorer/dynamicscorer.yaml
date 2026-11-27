@@ -1,0 +1,17 @@
+apiVersion: dynamic-scoring.open-cluster-management.io/v1alpha1
+kind: DynamicScorer
+metadata:
+  name: dynamic-scoring-sample-scorer-static
+  namespace: open-cluster-management
+spec:
+  description: A static per-cluster score for QE testing
+  # Replace the example host with the scorer's reachable URL in your environment.
+  # Keep the /static/config path; use https if that is how the scorer is exposed.
+  configURL: http://dynamic-scoring-sample-scorer.apps.example.com/static/config
+  configSyncMode: Full
+  scoring:
+    params:
+      interval: 30
+  location: Internal
+  scoreDestination: AddOnPlacementScore
+  scoreDimensionFormat: "${scoreName}"
