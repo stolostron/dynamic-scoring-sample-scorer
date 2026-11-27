@@ -23,7 +23,9 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 )
 
 const maxScoringRequestBytes = 10 << 20
@@ -36,7 +38,8 @@ type TimeSeries struct {
 }
 
 type ScoringPayload struct {
-	Data []TimeSeries `json:"data"`
+	ClusterName string       `json:"clusterName"`
+	Data        []TimeSeries `json:"data"`
 }
 
 type Score struct {
@@ -49,22 +52,43 @@ type ScoringResponse struct {
 }
 
 // NewHandler returns an HTTP handler implementing the DSF scorer endpoints.
-func NewHandler(configs EndpointConfigs) http.Handler {
+func NewHandler(configs EndpointConfigs, staticScoresPath ...string) http.Handler {
+	scoresPath := defaultStaticScoresPath
+	if len(staticScoresPath) > 0 && staticScoresPath[0] != "" {
+		scoresPath = staticScoresPath[0]
+	}
+	defaultScore := StaticScoreDefault()
 	mux := http.NewServeMux()
-	mux.HandleFunc("/config", func(w http.ResponseWriter, r *http.Request) {
+
+	// Average example - this is our default sample
+	mux.HandleFunc("/average/config", func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
 			return
 		}
 		writeJSON(w, http.StatusOK, configs.Average)
 	})
+	mux.HandleFunc("/average/scoring", scoringHandler(averageFiniteValues))
+
+	// Minimum headroom example
 	mux.HandleFunc("/minimum-headroom/config", func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
 			return
 		}
 		writeJSON(w, http.StatusOK, configs.MinimumHeadroom)
 	})
-	mux.HandleFunc("/scoring", scoringHandler(averageFiniteValues))
 	mux.HandleFunc("/minimum-headroom/scoring", scoringHandler(minimumFiniteValue))
+
+	// Static scores example - will return a static score per spoke cluster defined in a user-configured configmap
+	mux.HandleFunc("/static/config", func(w http.ResponseWriter, r *http.Request) {
+		if !requireMethod(w, r, http.MethodGet) {
+			return
+		}
+		writeJSON(w, http.StatusOK, configs.Static)
+	})
+	mux.HandleFunc("/static/scoring", staticScoringHandler(scoresPath, defaultScore))
+
+	// /healthz is a process-level liveness endpoint shared by all scorer examples.
+	// It does not report per-scorer health or check the optional static scores file.
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
 			return
@@ -72,6 +96,102 @@ func NewHandler(configs EndpointConfigs) http.Handler {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 	return mux
+}
+
+// StaticScores maps managed-cluster names to their configured scores.
+type StaticScores struct {
+	Clusters map[string]json.RawMessage `json:"clusters"`
+}
+
+func staticScoringHandler(path string, defaultScore int32) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !requireMethod(w, r, http.MethodPost) {
+			return
+		}
+		r.Body = http.MaxBytesReader(w, r.Body, maxScoringRequestBytes)
+		var payload ScoringPayload
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&payload); err != nil {
+			http.Error(w, "invalid scoring request JSON", http.StatusBadRequest)
+			return
+		}
+		if err := ensureEOF(decoder); err != nil {
+			http.Error(w, "scoring request must contain one JSON value", http.StatusBadRequest)
+			return
+		}
+		if strings.TrimSpace(payload.ClusterName) == "" {
+			http.Error(w, "clusterName is required", http.StatusBadRequest)
+			return
+		}
+
+		contents, err := os.ReadFile(path)
+		if err != nil {
+			writeStaticScore(w, defaultScore)
+			return
+		}
+		scores, err := parseStaticScores(contents)
+		if err != nil {
+			writeStaticScore(w, defaultScore)
+			return
+		}
+		score, ok := scores.scoreFor(payload.ClusterName)
+		if !ok {
+			writeStaticScore(w, defaultScore)
+			return
+		}
+		writeJSON(w, http.StatusOK, ScoringResponse{Results: []Score{{
+			Metric: map[string]string{},
+			Score:  float64(score),
+		}}})
+	}
+}
+
+func parseStaticScores(contents []byte) (StaticScores, error) {
+	var scores StaticScores
+	decoder := json.NewDecoder(bytes.NewReader(contents))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&scores); err != nil {
+		return StaticScores{}, err
+	}
+	if err := ensureEOF(decoder); err != nil {
+		return StaticScores{}, err
+	}
+	if scores.Clusters == nil {
+		return StaticScores{}, errors.New(`"clusters" must be an object`)
+	}
+	return scores, nil
+}
+
+func (s StaticScores) scoreFor(cluster string) (int32, bool) {
+	raw, ok := s.Clusters[cluster]
+	if !ok {
+		return 0, false
+	}
+	return parseStaticScore(raw)
+}
+
+func parseStaticScore(raw json.RawMessage) (int32, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 || trimmed[0] == '"' || trimmed[0] == '{' || trimmed[0] == '[' ||
+		bytes.Equal(trimmed, []byte("null")) || bytes.Equal(trimmed, []byte("true")) ||
+		bytes.Equal(trimmed, []byte("false")) {
+		return 0, false
+	}
+	parsed, err := strconv.ParseInt(string(trimmed), 10, 32)
+	if err != nil {
+		return 0, false
+	}
+	if parsed < -100 || parsed > 100 {
+		return 0, false
+	}
+	return int32(parsed), true
+}
+
+func writeStaticScore(w http.ResponseWriter, score int32) {
+	writeJSON(w, http.StatusOK, ScoringResponse{Results: []Score{{
+		Metric: map[string]string{},
+		Score:  float64(score),
+	}}})
 }
 
 func scoringHandler(aggregate func([][]json.RawMessage) float64) http.HandlerFunc {

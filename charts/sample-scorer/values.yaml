@@ -15,3 +15,5 @@ dynamicScoringSampleScorer:
     pullPolicy: Always
   # Use https only when the Route certificate is trusted by DSF's controller and agents.
   scheme: http
+  # The static sample reads this file from the optional static-scorer-scores ConfigMap.
+  staticScoresPath: /etc/static-scorer/scores.json

@@ -5,14 +5,14 @@ metadata:
   namespace: {{ required "global.namespace must be supplied by MCH" .Values.global.namespace }}
 spec:
   description: A Dynamic Scoring sample scorer for average cluster CPU headroom
-  configURL: "{{ .Values.dynamicScoringSampleScorer.scheme }}://dynamic-scoring-sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}/config"
+  configURL: "{{ .Values.dynamicScoringSampleScorer.scheme }}://dynamic-scoring-sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}/average/config"
   configSyncMode: Full
   location: Internal
   scoreDestination: AddOnPlacementScore
   scoreDimensionFormat: "${scoreName}"
   source:
     # The host is deployment-specific and is used as a fallback because the
-    # scorer omits it from /config unless PROMETHEUS_HOST is configured.
+    # scorer omits it from /average/config unless PROMETHEUS_HOST is configured.
     host: {{ required "dynamicScoringSampleScorer.prometheusHost must be supplied" .Values.dynamicScoringSampleScorer.prometheusHost | quote }}
     auth:
       tokenSecretRef:

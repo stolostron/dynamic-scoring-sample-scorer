@@ -22,20 +22,28 @@ import (
 	"strconv"
 )
 
-const defaultPrometheusQuery = `avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100`
+const staticScoresPathEnv = "STATIC_SCORES_PATH"
 
-// Config describes the source query and scoring endpoint returned by /config.
+const (
+	defaultPrometheusQuery  = `avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100`
+	defaultStaticScoresPath = "/etc/static-scorer/scores.json"
+	defaultStaticScore      = 0
+)
+
+// Config describes the source query and scoring endpoint returned by a scorer config endpoint.
 type Config struct {
-	Name        string        `json:"name"`
-	Description string        `json:"description"`
-	Source      SourceConfig  `json:"source"`
-	Scoring     ScoringConfig `json:"scoring"`
+	Name               string        `json:"name"`
+	Description        string        `json:"description"`
+	IncludeClusterName *bool         `json:"includeClusterName,omitempty"`
+	Source             SourceConfig  `json:"source"`
+	Scoring            ScoringConfig `json:"scoring"`
 }
 
 // EndpointConfigs contains the Prometheus-backed examples served by the API.
 type EndpointConfigs struct {
 	Average         Config
 	MinimumHeadroom Config
+	Static          Config
 }
 
 type SourceConfig struct {
@@ -102,7 +110,7 @@ func ConfigsFromEnv() (EndpointConfigs, error) {
 			Description: "Average CPU headroom across the cluster",
 			Source:      source,
 			Scoring: ScoringConfig{
-				Path: "/scoring",
+				Path: "/average/scoring",
 				Params: ScoringParams{
 					Name:     "sample_cpu_average",
 					Interval: scoringInterval,
@@ -121,7 +129,37 @@ func ConfigsFromEnv() (EndpointConfigs, error) {
 				},
 			},
 		},
+		Static: Config{
+			Name:               "dynamic-scoring-sample-scorer-static",
+			Description:        "Static test scores configured per managed cluster",
+			IncludeClusterName: new(true),
+			Source: SourceConfig{
+				Type: "None",
+			},
+			Scoring: ScoringConfig{
+				Path: "/static/scoring",
+				Params: ScoringParams{
+					Name:     "sample_static",
+					Interval: scoringInterval,
+				},
+			},
+		},
 	}, nil
+}
+
+// StaticScoresPath returns the configured static-score file path.
+func StaticScoresPath() string {
+	return stringFromEnv(staticScoresPathEnv, defaultStaticScoresPath)
+}
+
+// StaticScoreDefault returns the valid default score used when static score data
+// is missing or invalid.
+func StaticScoreDefault() int32 {
+	value, err := strconv.ParseInt(os.Getenv("STATIC_SCORER_DEFAULT_VALUE"), 10, 32)
+	if err != nil || value < -100 || value > 100 {
+		return defaultStaticScore
+	}
+	return int32(value)
 }
 
 func stringFromEnv(key, fallback string) string {

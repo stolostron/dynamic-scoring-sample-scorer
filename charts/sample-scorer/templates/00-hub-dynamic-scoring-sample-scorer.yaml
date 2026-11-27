@@ -28,6 +28,20 @@ spec:
             - name: http
               containerPort: 8000
               protocol: TCP
+          env:
+            - name: STATIC_SCORES_PATH
+              value: {{ .Values.dynamicScoringSampleScorer.staticScoresPath | quote }}
+            - name: STATIC_SCORER_DEFAULT_VALUE
+              value: "0"
+          volumeMounts:
+            - name: static-scores
+              mountPath: /etc/static-scorer
+              readOnly: true
+      volumes:
+        - name: static-scores
+          configMap:
+            name: static-scorer-scores
+            optional: true
 ---
 apiVersion: v1
 kind: Service

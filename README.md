@@ -8,8 +8,8 @@ headroom and minimum CPU headroom over the query range.
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/config` | Configures the average CPU-headroom example |
-| `POST` | `/scoring` | Returns the average per input time series |
+| `GET` | `/average/config` | Configures the average CPU-headroom example |
+| `POST` | `/average/scoring` | Returns the average per input time series |
 | `GET` | `/minimum-headroom/config` | Configures the minimum CPU-headroom example |
 | `POST` | `/minimum-headroom/scoring` | Returns the minimum per input time series |
 | `GET` | `/healthz` | Liveness check |
@@ -52,14 +52,14 @@ The Makefile uses the Go version declared in `go.mod`.
 Then check the configuration and health endpoint:
 
 ```sh
-curl http://localhost:8000/config
+curl http://localhost:8000/average/config
 curl http://localhost:8000/healthz
 ```
 
 Submit the included sample payload:
 
 ```sh
-curl -X POST http://localhost:8000/scoring \
+curl -X POST http://localhost:8000/average/scoring \
   -H 'Content-Type: application/json' \
   --data-binary @examples/cpu-timeseries.json
 ```
@@ -100,7 +100,7 @@ The default image is
 
 ## Configuration
 
-`/config` provides the Prometheus query, range, step, scoring path, score name,
+`/average/config` provides the Prometheus query, range, step, scoring path, score name,
 and interval for the average example. `/minimum-headroom/config` provides the
 same source configuration with its own score name and endpoint path. By default,
 the Prometheus query returns one cluster-wide average CPU-idle series, which
@@ -113,4 +113,14 @@ so it can be supplied by the `DynamicScorer` CR. If you customize the query to
 return multiple series, set a `scoreDimensionFormat` that gives each result a
 distinct, cross-cluster-comparable dimension.
 
-Static scoring is not included.
+## Static QE example
+
+The static scoring endpoints are available for QE tests but are not registered
+by the Helm chart. Apply the sample `DynamicScorer` CR when needed:
+
+```sh
+oc apply -f examples/static-scorer/dynamicscorer.yaml
+```
+
+See [`examples/static-scorer/README.md`](examples/static-scorer/README.md) for
+the ConfigMap format and usage.

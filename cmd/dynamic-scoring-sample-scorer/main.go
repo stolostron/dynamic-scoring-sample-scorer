@@ -39,7 +39,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:              ":" + port,
-		Handler:           scorer.NewHandler(configs),
+		Handler:           scorer.NewHandler(configs, scorer.StaticScoresPath()),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
