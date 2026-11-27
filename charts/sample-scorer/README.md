@@ -7,8 +7,8 @@ resources. It is not integrated into MCH's default add-on installation flow.
 
 - `templates/00-hub-dynamic-scoring-sample-scorer.yaml`: namespace, scorer Deployment, Service, and OpenShift Route.
 - `templates/10-dynamicscorer.yaml` and
-  `12-dynamicscorer-minimum-headroom.yaml`: registrations for the average and
-  minimum CPU-headroom examples. Each API config supplies its query and scoring
+  `12-dynamicscorer-minimum.yaml`: registrations for the average and
+  minimum CPU-idle examples. Each API config supplies its query and scoring
   settings; the CR supplies the Prometheus host fallback and token Secret
   reference.
 - `templates/11-dynamicscoringconfig.yaml`: the current DSF singleton configuration.
@@ -41,9 +41,15 @@ The default Prometheus host is configurable with
 sends one host to all managed clusters; supporting different Prometheus URLs
 per spoke requires a DSF framework enhancement.
 
+The Prometheus-backed examples publish the score names
+`sample_cpu_idle_average` and `sample_cpu_idle_minimum`. Their endpoints are
+`/average/config`, `/average/scoring`, `/minimum/config`, and `/minimum/scoring`.
+
 The static scorer endpoints are served by the Deployment, but the chart does not
 register a `DynamicScorer` for them. QE can apply the sample registration from
 `examples/static-scorer/dynamicscorer.yaml` when needed.
+The static API endpoints are `/static/config` and `/static/scoring`, and it
+publishes the score name `sample_static`.
 
 The Deployment optionally mounts the `static-scorer-scores` ConfigMap from the
 scorer namespace at `/etc/static-scorer`. No ConfigMap is required for the pod

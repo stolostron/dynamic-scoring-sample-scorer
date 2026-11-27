@@ -1,17 +1,19 @@
 # Dynamic Scoring Sample Scorer
 
-A Go Prometheus-backed scoring API for the Dynamic Scoring Framework (DSF),
-based on the original DSF sample scorer. It exposes two scoring examples: average CPU
-headroom and minimum CPU headroom over the query range.
+A Go scoring API for the Dynamic Scoring Framework (DSF), based on the original
+DSF sample scorer. It provides two Prometheus-backed CPU-idle examples and a
+static per-cluster example for QE.
 
 ## API
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/average/config` | Configures the average CPU-headroom example |
+| `GET` | `/average/config` | Configures the average CPU-idle example |
 | `POST` | `/average/scoring` | Returns the average per input time series |
-| `GET` | `/minimum-headroom/config` | Configures the minimum CPU-headroom example |
-| `POST` | `/minimum-headroom/scoring` | Returns the minimum per input time series |
+| `GET` | `/minimum/config` | Configures the minimum CPU-idle example |
+| `POST` | `/minimum/scoring` | Returns the minimum per input time series |
+| `GET` | `/static/config` | Configures the static QE example |
+| `POST` | `/static/scoring` | Returns the configured score for the requesting spoke |
 | `GET` | `/healthz` | Liveness check |
 
 The scoring request uses the Prometheus matrix shape:
@@ -27,8 +29,8 @@ The scoring request uses the Prometheus matrix shape:
 }
 ```
 
-The response preserves the metric labels. The average example returns the
-average of numeric sample values:
+The response preserves metric labels. For the default CPU-idle query, the
+average example returns the average idle percentage per series:
 
 ```json
 {
@@ -38,8 +40,8 @@ average of numeric sample values:
 }
 ```
 
-The minimum-headroom example uses the same request shape but returns the
-minimum numeric sample value for each series.
+The minimum example uses the same request shape but returns the minimum CPU-idle
+percentage in the query range for each series.
 
 ## Run locally
 
@@ -101,11 +103,17 @@ The default image is
 ## Configuration
 
 `/average/config` provides the Prometheus query, range, step, scoring path, score name,
-and interval for the average example. `/minimum-headroom/config` provides the
-same source configuration with its own score name and endpoint path. By default,
-the Prometheus query returns one cluster-wide average CPU-idle series, which
-means higher scores represent more CPU headroom and each example produces one
-dimension per cluster.
+and interval for the average example. `/minimum/config` provides the
+same source configuration with its own score name and endpoint path.
+
+By default, the query returns one cluster-wide CPU-idle series. The average
+example averages its samples; the minimum example returns the lowest sample in
+the query range. Both examples report CPU idle percentage, not headroom. A
+lower minimum-idle score indicates a busier cluster. If you customize
+`PROMETHEUS_QUERY`, the meaning and direction of scores depend on that query.
+
+The examples publish scores named `sample_cpu_idle_average` and
+`sample_cpu_idle_minimum`. The static QE example publishes `sample_static`.
 
 Set `PROMETHEUS_HOST` in the scorer's runtime environment if both config
 endpoints should provide the source host. If it is unset, the host is omitted
@@ -123,4 +131,8 @@ oc apply -f examples/static-scorer/dynamicscorer.yaml
 ```
 
 See [`examples/static-scorer/README.md`](examples/static-scorer/README.md) for
-the ConfigMap format and usage.
+the ConfigMap format and usage. Static scores must be whole numbers from `-100`
+to `100`, inclusive. The scorer uses the configured default (currently `0`)
+when the ConfigMap or its JSON is unavailable, or when a spoke's entry is
+missing or invalid. An invalid entry falls back only for that spoke; other
+valid entries continue to be used.

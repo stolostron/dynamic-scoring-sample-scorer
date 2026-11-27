@@ -41,9 +41,9 @@ type Config struct {
 
 // EndpointConfigs contains the Prometheus-backed examples served by the API.
 type EndpointConfigs struct {
-	Average         Config
-	MinimumHeadroom Config
-	Static          Config
+	Average Config
+	Minimum Config
+	Static  Config
 }
 
 type SourceConfig struct {
@@ -107,24 +107,24 @@ func ConfigsFromEnv() (EndpointConfigs, error) {
 	return EndpointConfigs{
 		Average: Config{
 			Name:        "dynamic-scoring-sample-scorer",
-			Description: "Average CPU headroom across the cluster",
+			Description: "Average CPU idle percentage across the cluster",
 			Source:      source,
 			Scoring: ScoringConfig{
 				Path: "/average/scoring",
 				Params: ScoringParams{
-					Name:     "sample_cpu_average",
+					Name:     "sample_cpu_idle_average",
 					Interval: scoringInterval,
 				},
 			},
 		},
-		MinimumHeadroom: Config{
-			Name:        "dynamic-scoring-sample-scorer-minimum-headroom",
-			Description: "Minimum CPU headroom observed across the cluster",
+		Minimum: Config{
+			Name:        "dynamic-scoring-sample-scorer-minimum",
+			Description: "Minimum CPU idle percentage observed across the cluster",
 			Source:      source,
 			Scoring: ScoringConfig{
-				Path: "/minimum-headroom/scoring",
+				Path: "/minimum/scoring",
 				Params: ScoringParams{
-					Name:     "sample_cpu_minimum_headroom",
+					Name:     "sample_cpu_idle_minimum",
 					Interval: scoringInterval,
 				},
 			},

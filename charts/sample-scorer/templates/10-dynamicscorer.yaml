@@ -4,7 +4,7 @@ metadata:
   name: dynamic-scoring-sample-scorer
   namespace: {{ required "global.namespace must be supplied by MCH" .Values.global.namespace }}
 spec:
-  description: A Dynamic Scoring sample scorer for average cluster CPU headroom
+  description: A Dynamic Scoring sample scorer for average cluster CPU idle
   configURL: "{{ .Values.dynamicScoringSampleScorer.scheme }}://dynamic-scoring-sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}/average/config"
   configSyncMode: Full
   location: Internal

@@ -43,18 +43,18 @@ func testConfigs() EndpointConfigs {
 			Scoring: ScoringConfig{
 				Path: "/scoring",
 				Params: ScoringParams{
-					Name:     "sample_cpu_average",
+					Name:     "sample_cpu_idle_average",
 					Interval: 30,
 				},
 			},
 		},
-		MinimumHeadroom: Config{
-			Name:   "dynamic-scoring-sample-scorer-minimum-headroom",
+		Minimum: Config{
+			Name:   "dynamic-scoring-sample-scorer-minimum",
 			Source: source,
 			Scoring: ScoringConfig{
-				Path: "/minimum-headroom/scoring",
+				Path: "/minimum/scoring",
 				Params: ScoringParams{
-					Name:     "sample_cpu_minimum_headroom",
+					Name:     "sample_cpu_idle_minimum",
 					Interval: 30,
 				},
 			},
@@ -94,26 +94,26 @@ func TestConfigOmitsEmptyPrometheusHost(t *testing.T) {
 	if err := json.Unmarshal(response.Body.Bytes(), &config); err != nil {
 		t.Fatalf("decode config response: %v", err)
 	}
-	if config.Scoring.Params.Name != "sample_cpu_average" {
-		t.Fatalf("score name = %q, want sample_cpu_average", config.Scoring.Params.Name)
+	if config.Scoring.Params.Name != "sample_cpu_idle_average" {
+		t.Fatalf("score name = %q, want sample_cpu_idle_average", config.Scoring.Params.Name)
 	}
 }
 
-func TestMinimumHeadroomConfigDescribesItsEndpoint(t *testing.T) {
-	response := request(t, NewHandler(testConfigs()), http.MethodGet, "/minimum-headroom/config", "")
+func TestMinimumConfigDescribesItsEndpoint(t *testing.T) {
+	response := request(t, NewHandler(testConfigs()), http.MethodGet, "/minimum/config", "")
 	if response.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
 	}
 
 	var config Config
 	if err := json.Unmarshal(response.Body.Bytes(), &config); err != nil {
-		t.Fatalf("decode minimum-headroom config response: %v", err)
+		t.Fatalf("decode minimum config response: %v", err)
 	}
-	if config.Scoring.Path != "/minimum-headroom/scoring" {
-		t.Fatalf("scoring path = %q, want /minimum-headroom/scoring", config.Scoring.Path)
+	if config.Scoring.Path != "/minimum/scoring" {
+		t.Fatalf("scoring path = %q, want /minimum/scoring", config.Scoring.Path)
 	}
-	if config.Scoring.Params.Name != "sample_cpu_minimum_headroom" {
-		t.Fatalf("score name = %q, want sample_cpu_minimum_headroom", config.Scoring.Params.Name)
+	if config.Scoring.Params.Name != "sample_cpu_idle_minimum" {
+		t.Fatalf("score name = %q, want sample_cpu_idle_minimum", config.Scoring.Params.Name)
 	}
 }
 
@@ -292,12 +292,12 @@ func TestScoringAveragesEachSeriesAndPreservesLabels(t *testing.T) {
 	}
 }
 
-func TestMinimumHeadroomReturnsMinimumPerSeriesAndPreservesLabels(t *testing.T) {
+func TestMinimumReturnsMinimumPerSeriesAndPreservesLabels(t *testing.T) {
 	response := request(
 		t,
 		NewHandler(testConfigs()),
 		http.MethodPost,
-		"/minimum-headroom/scoring",
+		"/minimum/scoring",
 		`{"data":[{"metric":{"node":"worker-1"},"values":[[1,"75"],[2,"40"],[3,"60"]]}]}`,
 	)
 	if response.Code != http.StatusOK {
@@ -306,7 +306,7 @@ func TestMinimumHeadroomReturnsMinimumPerSeriesAndPreservesLabels(t *testing.T) 
 
 	var result ScoringResponse
 	if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
-		t.Fatalf("decode minimum-headroom response: %v", err)
+		t.Fatalf("decode minimum response: %v", err)
 	}
 	if len(result.Results) != 1 {
 		t.Fatalf("got %d results, want 1", len(result.Results))

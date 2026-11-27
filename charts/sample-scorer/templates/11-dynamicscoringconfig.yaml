@@ -8,6 +8,6 @@ spec:
     # Current DSF behavior is all managed clusters except explicit masks.
     # This excludes the hub; it does not make scorer distribution match the Placement.
     - clusterName: local-cluster
-      scoreName: sample_cpu_average
+      scoreName: sample_cpu_idle_average
     - clusterName: local-cluster
-      scoreName: sample_cpu_minimum_headroom
+      scoreName: sample_cpu_idle_minimum

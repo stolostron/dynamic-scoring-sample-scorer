@@ -69,14 +69,14 @@ func NewHandler(configs EndpointConfigs, staticScoresPath ...string) http.Handle
 	})
 	mux.HandleFunc("/average/scoring", scoringHandler(averageFiniteValues))
 
-	// Minimum headroom example
-	mux.HandleFunc("/minimum-headroom/config", func(w http.ResponseWriter, r *http.Request) {
+	// Minimum CPU idle example
+	mux.HandleFunc("/minimum/config", func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
 			return
 		}
-		writeJSON(w, http.StatusOK, configs.MinimumHeadroom)
+		writeJSON(w, http.StatusOK, configs.Minimum)
 	})
-	mux.HandleFunc("/minimum-headroom/scoring", scoringHandler(minimumFiniteValue))
+	mux.HandleFunc("/minimum/scoring", scoringHandler(minimumFiniteValue))
 
 	// Static scores example - will return a static score per spoke cluster defined in a user-configured configmap
 	mux.HandleFunc("/static/config", func(w http.ResponseWriter, r *http.Request) {

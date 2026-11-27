@@ -1,11 +1,11 @@
 apiVersion: dynamic-scoring.open-cluster-management.io/v1alpha1
 kind: DynamicScorer
 metadata:
-  name: dynamic-scoring-sample-scorer-minimum-headroom
+  name: dynamic-scoring-sample-scorer-minimum
   namespace: {{ required "global.namespace must be supplied by MCH" .Values.global.namespace }}
 spec:
-  description: A Dynamic Scoring sample scorer for minimum cluster CPU headroom
-  configURL: "{{ .Values.dynamicScoringSampleScorer.scheme }}://dynamic-scoring-sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}/minimum-headroom/config"
+  description: A Dynamic Scoring sample scorer for minimum cluster CPU idle
+  configURL: "{{ .Values.dynamicScoringSampleScorer.scheme }}://dynamic-scoring-sample-scorer.{{ required "hubconfig.clusterIngressDomain must be supplied by MCH" .Values.hubconfig.clusterIngressDomain }}/minimum/config"
   configSyncMode: Full
   location: Internal
   scoreDestination: AddOnPlacementScore
